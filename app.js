@@ -15,6 +15,7 @@ mongoose.connect(mongourl)
     })
  const expenseSchema = new mongoose.Schema({
     id: { type: String, required: true,unique:true },
+    
     title: { type: String, required: true },
     amount: { type: Number, required: true },
  });
