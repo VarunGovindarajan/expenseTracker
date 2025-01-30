@@ -1,75 +1,53 @@
-const express = require('express');
-const app = express();
-const { mongoose } = require('mongoose');
-const PORT = 1204;
-app.use(express.json());
-const { v4 : uuidv4 } = require('uuid');
-const mongourl = "mongodb+srv://varun:varun123@cluster0.fyeln.mongodb.net/tracker";
+import { useEffect, useState } from 'react';
+import './App.css';
+import './index.css';
+import AddTransaction from './components/AddTransaction';
+import TransactionList from './components/TransactionList';
+import Balance from './components/Balance';
+import IncomeExpense from './components/IncomeExpense';
+import axios from 'axios';
 
-mongoose.connect(mongourl)
-    .then(() => {
-        console.log("MongoDB connected");
-        app.listen(PORT, () => {
-            console.log(`Server is running at http://localhost:${PORT}`);
-        })
-    })
- const expenseSchema = new mongoose.Schema({
-    id: { type: String, required: true,unique:true },
-    
-    title: { type: String, required: true },
-    amount: { type: Number, required: true },
- });
- const expenseModel = mongoose.model('expense-tracker', expenseSchema);//collection name, schema name
-app.post("/api/expense", async (req, res) => {
-    const { title, amount } = req.body;
-    const newExpense = new expenseModel({
-        id: uuidv4(),
-        title: title,
-       amount: amount,
-    });
-    const savedExpense = await newExpense.save();
-    res.status(200).json(savedExpense);
-});
+function App() {
+  const [transactions, setTransactions] = useState([]);
 
-app.get("/api/expenses", async (req, res) => {
-    try {
-        const expenses = await expenseModel.find({});
-        res.status(200).json(expenses);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to fetch expenses", details: err });
-    }
-});
+  useEffect(() => {
+    axios
+      .get('https://expensetracker-nx9c.onrender.com/api/expenses')
+      .then((res) => setTransactions(res.data))
+      .catch((err) => console.error('Error fetching transactions:', err));
+  }, []);
 
-app.get("/api/expenses/:id", async (req, res) => {
-    try {
-        const { id }=req.params;
-        const expenses = await expenseModel.findOne({id});
-        res.json(expenses);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to fetch expenses", details: err });
-    }
-});
-app.put("/api/expenses/:id", async (req, res) => {
-    const { id } = req.params;
-    const { title, amount } = req.body;
-    const updatedExpense = await expenseModel.findOneAndUpdate(
-      {
-        id: id,
-      },
-      {
-        title: title,
-        amount: amount,
-      }
-    );
-  
-    res.status(200).json(updatedExpense);
-  });
-  app.delete("/api/expenses/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const expenses = await expenseModel.deleteOne({id});
-      res.json(expenses);
-    } catch (err) {
-      res.status(500).json({ error: "Failed to fetch expenses", details: err });
-    }
-  });
+  const onAddTransaction = (data) => {
+    axios
+      .post('https://expensetracker-nx9c.onrender.com/api/expenses', data) 
+      .then((res) => {
+        setTransactions([...transactions, res.data]); 
+      })
+      .catch((err) => console.error('Error adding transaction:', err));
+  };
+
+  const onDeleteTransaction = (id) => {
+    console.log('Deleting transaction with ID:', id);
+    axios
+      .delete(`https://expensetracker-nx9c.onrender.com/api/expenses/${id}`) 
+      .then(() => {
+        console.log('Transaction deleted successfully');
+        setTransactions(transactions.filter((transaction) => transaction.id !== id)); 
+      })
+      .catch((err) => console.error('Error deleting transaction:', err));
+  };
+
+  return (
+    <>
+      <h1>Expense Tracker</h1>
+      <div className="container">
+        <Balance transactions={transactions} />
+        <IncomeExpense transactions={transactions} />
+        <AddTransaction onAdd={onAddTransaction} />
+        <TransactionList transactions={transactions} onDelete={onDeleteTransaction} />
+      </div>
+    </>
+  );
+}
+
+export default App;
