@@ -1,4 +1,4 @@
-const url = "mongodb+srv://varun:varun123@cluster0.fyeln.mongodb.net//Mern-Expense";
+const url = "mongodb+srv://elavarasanr2023it:alwlhTZlbiW6nXQT@cluster0.eqz5z.mongodb.net/Mern-Expense";
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
@@ -8,7 +8,6 @@ const cors = require('cors');
 app.use(express.json());
 app.use(cors());
 
-
 // const url = "mongodb://localhost:27017/Mern";
 const port = 8001;
 
@@ -17,7 +16,7 @@ mongoose
   .then(() => {
     console.log("DB connected");
     app.listen(port, () => {
-      console.log(`MY server is Running http://localhost:${port}`);
+      console.log(MY server is Running http://localhost:${port});
     });
   })
   .catch((err) => console.error('Error connecting to DB:', err));
